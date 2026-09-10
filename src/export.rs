@@ -9,7 +9,7 @@ use ironworks::excel::{Excel, Field, Language};
 use ironworks::file::exh::{ColumnDefinition, SheetKind};
 
 use crate::exd_schema::field_names;
-use crate::formatter::format_string;
+use crate::cgwiki::formatter::format_string;
 
 /// Generates a CSV extract for the given sheet and language
 pub fn sheet(excel: &Excel, language: Language, sheet_name: &str) -> Result<(), Box<dyn Error>> {
@@ -58,7 +58,7 @@ pub fn sheet(excel: &Excel, language: Language, sheet_name: &str) -> Result<(), 
             };
             let field = row.field(&specifier)?;
 
-            data.push(field_to_string(&field, &input));
+            data.push(field_to_string(excel, &field, &input));
         }
 
         match writer.serialize(data) {
@@ -121,9 +121,9 @@ pub fn language_code(language: &Language) -> &str {
 }
 
 /// Transforms the given field to a string
-fn field_to_string(field: &Field, input: &Input) -> String {
+fn field_to_string(excel: &Excel, field: &Field, input: &Input) -> String {
     return match field {
-        Field::String(value) => format_string(value, input),
+        Field::String(value) => format_string(excel, value, input),
         Field::Bool(value) => {
             if *value {
                 String::from("True")

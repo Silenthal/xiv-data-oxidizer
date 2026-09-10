@@ -6,6 +6,8 @@ use ironworks::{
     excel::Excel,
     sqpack::{Install, SqPack},
 };
+
+mod cgwiki;
 mod exd_schema;
 mod export;
 mod formatter;
