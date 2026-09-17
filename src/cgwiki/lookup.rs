@@ -5,8 +5,7 @@ pub mod sheet_lookup {
     };
 
     use ironworks::{
-        excel::Field,
-        file::exh::ColumnDefinition,
+        excel::Field, file::exh::{ColumnDefinition, ColumnKind},
     };
 
     use crate::{
@@ -41,7 +40,7 @@ pub mod sheet_lookup {
         let original_column_list = sheet.columns().ok()?;
 
         // Take just the offsets, and sort them - they will match the order of names in the YAML file
-        let mut field_offset_list: Vec<u16> = original_column_list.iter().map(|x| x.offset).collect();
+        let mut field_offset_list: Vec<u32> = original_column_list.iter().map(|x| get_shift_offset(x)).collect();
         field_offset_list.sort();
 
         // Skip first field "#", keep rest - each field corresponds to the offset at the same index
@@ -59,7 +58,7 @@ pub mod sheet_lookup {
         let sorted_columns: Vec<String> = original_column_list
             .iter()
             .map(|off| {
-                let field_index = field_offset_list.binary_search(&off.offset).unwrap();
+                let field_index = field_offset_list.binary_search(&get_shift_offset(off)).unwrap();
                 field_name_list[field_index].clone()
             })
             .collect();
@@ -146,5 +145,19 @@ pub mod sheet_lookup {
         let sd = get_sheet_detail(state, sheet_name)?;
         let (name, _) = sd.col_def_list.get(column_index as usize)?;
         Some(name.clone())
+    }
+
+    fn get_shift_offset(x: &ColumnDefinition) -> u32 {
+        let shift: u32 = match x.kind {
+            ColumnKind::PackedBool1 => 1,
+            ColumnKind::PackedBool2 => 2,
+            ColumnKind::PackedBool3 => 3,
+            ColumnKind::PackedBool4 => 4,
+            ColumnKind::PackedBool5 => 5,
+            ColumnKind::PackedBool6 => 6,
+            ColumnKind::PackedBool7 => 7,
+            _ => 0,
+        };
+        ((x.offset as u32) << 3) + shift
     }
 }
